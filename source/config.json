@@ -1,0 +1,8 @@
+{
+    "predefined-seed": true,
+    "seed": 42,
+    "iterations": 10,
+    "runs": 3,
+    "path-to-solution": "./solution",
+    "path-to-log": "./log"
+}
