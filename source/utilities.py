@@ -14,8 +14,17 @@ import os
 import sys
 
 from copy import deepcopy
-
 from shape import Shape
+from solution import Solution
+
+
+def generate_initial_population(board_dimensions, shapes, size):
+    solutions = []
+
+    for i in range(size):
+        solutions += [Solution(shapes, board_dimensions, 0)]
+
+    return solutions
 
 
 def shuffled_array(array):
