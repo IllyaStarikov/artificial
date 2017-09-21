@@ -8,13 +8,29 @@
 #
 
 import random
-
 import json
 import time
 import os
 import sys
 
+from copy import deepcopy
+
 from shape import Shape
+
+
+def shuffled_array(array):
+    array2 = deepcopy(array)
+    random.shuffle(array2)
+    return array2
+
+
+def add_list_of_sets(sets):
+    added_set = set()
+
+    for set_ in sets:
+        added_set = added_set.union(set_)
+
+    return added_set
 
 
 def random_arbitrary(floor, ceiling):
@@ -63,8 +79,10 @@ def configure():
         random.seed(seed_)
 
     filename = sys.argv[2]
+    initial_population = configuration["initial-population"]
     path_to_solution = configuration["path-to-solution"]
     path_to_log = configuration["path-to-log"]
+    mutation_rate = configuration["mutation-rate"]
 
     if not os.path.isdir(path_to_solution):
         os.makedirs(path_to_solution)
@@ -72,7 +90,7 @@ def configure():
     if not os.path.isdir(path_to_log):
         os.makedirs(path_to_log)
 
-    return filename, max_iterations, number_of_runs, seed_, path_to_log, path_to_solution
+    return filename, max_iterations, number_of_runs, seed_, path_to_log, path_to_solution, initial_population, mutation_rate
 
 
 def get_shapes_and_board_dimensions(filename):

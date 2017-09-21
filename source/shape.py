@@ -13,13 +13,19 @@
 
 class Shape():
     rotations = 0
-    rotations_list = []
+    shapes_list = []
     start_position = (0, 0)
+
+    shape_number = 0
+    id_counter = 0
 
     def __init__(self, shapes_list):
         self.rotations = 0
         self.start_position = (0, 0)
         self.shapes_list = shapes_list
+
+        Shape.shape_number += 1
+        self.shape_number = Shape.shape_number
 
     def get_height(self):
         _, height = self.__calculate_height_width()

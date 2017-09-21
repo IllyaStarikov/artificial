@@ -7,7 +7,12 @@
 # Copyright 2017. Illya Starikov. All rights reserved.
 #
 
-from utilities import random_arbitrary, generate_random_point
+from utilities import random_arbitrary, generate_random_point, shuffled_array, add_list_of_sets
+from math import floor
+import random
+import operator
+
+MAX_ATTEMPT_TO_PLACE_SHAPE = 255  # a nice, CS number
 
 
 class Solution():
@@ -15,69 +20,18 @@ class Solution():
     shapes = []
     all_points = set()
     run = -1
+    dimensions = (-1, -1)
 
     # MARK: Constructors
     def __init__(self, shapes, dimensions, run):
-        solution_shapes = []
-
-        index = 0
-        board_columns, board_rows = dimensions
-
-        current_points = set()
-        while index < len(shapes):
-            shape = shapes[index]
-            attempts = 0
-
-            solution_found = False
-            while attempts < 100 or not solution_found:
-                random_rotation = random_arbitrary(0, 3)
-                random_point = generate_random_point((0, board_rows), (0, board_columns))
-
-                shape.set_rotation(random_rotation)
-                shape.set_start_position(random_point)
-
-                solution_found = True
-                for row, column in shape.get_points_in_path():
-                    if (row, column) in current_points or not (0 <= row < board_rows) or not (0 <= column < board_columns):
-                        solution_found = False
-
-                attempts += 1
-
-            if solution_found:
-                points = shape.get_points_in_path()
-                current_points = current_points.union(points)
-                solution_shapes += [shape]
-                index += 1
-            else:
-                current_points = set()
-                solution_shapes = []
-                index = 0
-
-        self.shapes = solution_shapes
-        self.all_points = points
         self.run = run
-
-    # MARK: Getters/Setters
-    def set_shapes(self, shapes):
+        self.dimensions = dimensions
         self.shapes = shapes
 
-    def get_shapes(self):
-        return self.shapes
+        self.shapes, self.all_points = self.__generate_solution(self.shapes, set())
 
-    def set_all_used_points(self, points):
-        return self.all_pointss
-
-    def get_all_used_points(self):
-        return self.all_points
-
-    def set_run(self, run):
-        self.run = run
-
-    def get_run(self):
-        return self.run
-
-    def fitness(self, board_dimensions):
-        max_length, _ = board_dimensions
+    def fitness(self):
+        max_length, _ = self.dimensions
         rightmost_column = 0
 
         for shape in self.shapes:
@@ -88,3 +42,89 @@ class Solution():
                 rightmost_column = rightmost_shape_value
         length_used = rightmost_column
         return max_length - length_used
+
+    def mutated(self, rate):
+        number_of_mutations = floor(len(self.shapes) * rate)
+        random_shapes = shuffled_array(self.shapes)
+
+        mutated_shapes = random_shapes[number_of_mutations:]  # random take off (at the end) the specified rate of mutation
+        shapes_to_mutate = random_shapes[:number_of_mutations]  # this is just the inverse of above
+
+        mutated_shapes_list = [(x.get_points_in_path()) for x in mutated_shapes]
+        mutated_shapes_points = add_list_of_sets(mutated_shapes_list)
+
+        new_shapes, new_points = self.__generate_solution(shapes_to_mutate, mutated_shapes_points)
+
+        blank_solution = Solution([], self.dimensions, self.run)
+        blank_solution.set_all_used_points(new_points)
+        blank_solution.set_shapes(mutated_shapes + new_shapes)
+
+        return blank_solution
+
+    # MARK: Private Methods
+    def __generate_solution(self, shapes, current_points):
+        shapes_thus_far = []
+        all_points = current_points
+        index = 0
+
+        while index < len(shapes):
+            shape = shapes[index]
+            solution_found, shape = self.__attempt_to_place_shape(shape, all_points)
+
+            if solution_found:
+                points = shape.get_points_in_path()
+                all_points = all_points.union(points)
+                shapes_thus_far += [shape]
+                index += 1
+            else:
+                all_points = current_points
+                shapes_thus_far = []
+                index = 0
+
+        return shapes_thus_far, all_points
+
+    # tries ONE time to place a shape in a random plot
+    # does NOT have to be successful. returns if it is
+    def __attempt_to_place_shape(self, shape, current_points):
+        board_columns, board_rows = self.dimensions
+
+        place_found = False
+        attempts = 0
+
+        while attempts < MAX_ATTEMPT_TO_PLACE_SHAPE and not place_found:
+            attempts += 1
+
+            random_rotation = random_arbitrary(0, 3)
+            random_point = generate_random_point((0, board_rows), (0, board_columns))
+
+            shape.set_rotation(random_rotation)
+            shape.set_start_position(random_point)
+
+            place_found = True
+            for row, column in shape.get_points_in_path():
+                if (row, column) in current_points or not (0 <= row < board_rows) or not (0 <= column < board_columns):
+                    place_found = False
+
+        return place_found, shape
+
+    def randomize_shape_order(self):
+        random.shuffle(self.shapes)
+
+    # MARK: Getters/Setters
+    def set_shapes(self, shapes):
+        self.shapes = shapes
+
+    def get_shapes(self):
+        return sorted(self.shapes, key=operator.attrgetter('shape_number'))
+
+    def set_all_used_points(self, points):
+        self.all_points = points
+
+    def get_all_used_points(self):
+        return self.all_points
+
+    def set_run(self, run):
+        self.run = run
+
+    def get_run(self):
+        return self.run
