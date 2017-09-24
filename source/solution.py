@@ -7,8 +7,9 @@
 # Copyright 2017. Illya Starikov. All rights reserved.
 #
 
-from utilities import random_arbitrary, generate_random_point, shuffled_array, add_list_of_sets
+from utilities import random_arbitrary, generate_random_point, shuffled_array, add_list_of_sets, n_point_crossover
 from math import floor
+from copy import deepcopy
 import random
 import operator
 
@@ -31,10 +32,10 @@ class Solution():
         self.shapes, self.all_points = self.__generate_solution(self.shapes, set())
 
     def fitness(self):
-        max_length, _ = self.dimensions
+        max_length, _ = self.get_dimensions()
         rightmost_column = 0
 
-        for shape in self.shapes:
+        for shape in self.get_shapes():
             _, max_right = shape.get_rightmost_point()
             rightmost_shape_value = max_right
 
@@ -54,14 +55,73 @@ class Solution():
         mutated_shapes_points = add_list_of_sets(mutated_shapes_list)
 
         new_shapes, new_points = self.__generate_solution(shapes_to_mutate, mutated_shapes_points)
+        new_solution = self.__init_solved_solution(new_points, mutated_shapes + new_shapes)
 
-        blank_solution = Solution([], self.dimensions, self.run)
-        blank_solution.set_all_used_points(new_points)
-        blank_solution.set_shapes(mutated_shapes + new_shapes)
+        return new_solution
 
-        return blank_solution
+    def recombination(self, other_solution, n):
+        solution_one_shapes = deepcopy(self.get_shapes())
+        solution_two_shapes = deepcopy(other_solution.get_shapes())
+
+        solution_one_shapes, solution_two_shapes = n_point_crossover(solution_one_shapes, solution_two_shapes, n)
+
+        solution_one = Solution([], self.get_dimensions(), self.get_run())
+        solution_two = Solution([], other_solution.get_dimensions(), other_solution.get_run())
+
+        solution_one.set_shapes(solution_one_shapes)
+        solution_two.set_shapes(solution_two_shapes)
+
+        solution_one.repair()
+        # solution_two.repair()
+
+        return solution_one, solution_two
+
+    def repair(self):
+        all_points = set()
+        new_shapes = []
+
+        for shape in self.get_shapes():
+            index = 0
+
+            points_in_path = list(shape.get_points_in_path())
+
+            while index < len(points_in_path):
+                point = points_in_path[index]
+
+                if point in all_points:
+                    shapes, points = self.__generate_solution([shape], all_points)
+                    shape = shapes[0]
+                    points_in_path = list(shape.get_points_in_path())
+
+                    index = 0
+                else:
+                    index += 1
+
+            new_shapes += [shape]
+            all_points = all_points.union(shape.get_points_in_path())
+
+        self.set_shapes(new_shapes)
+        self.set_all_used_points(all_points)
 
     # MARK: Private Methods
+    def __init_solved_solution(self, new_points, new_shapes):
+        new_solution = Solution([], self.dimensions, self.run)
+        new_solution.set_all_used_points(new_points)
+        new_solution.set_shapes(new_shapes)
+
+        return new_solution
+
+    def __init_solved_solution_without_points(self, new_shapes):
+        new_solution = Solution([], self.dimensions, self.run)
+        new_solution.set_shapes(new_shapes)
+
+        for shape in new_shapes:
+            used_points = new_solution.get_all_used_points()
+            shape_points = shape.get_points_in_path()
+            new_solution.set_all_used_points(used_points.union(shape_points))
+
+        return new_solution
+
     def __generate_solution(self, shapes, current_points):
         shapes_thus_far = []
         all_points = current_points
@@ -128,3 +188,6 @@ class Solution():
 
     def get_run(self):
         return self.run
+
+    def get_dimensions(self):
+        return self.dimensions

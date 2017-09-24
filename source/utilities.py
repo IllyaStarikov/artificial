@@ -15,16 +15,49 @@ import sys
 
 from copy import deepcopy
 from shape import Shape
-from solution import Solution
+from enum import Enum
+from math import floor
+
+
+Side = Enum("left", "right")
 
 
 def generate_initial_population(board_dimensions, shapes, size):
+    from solution import Solution  # prevent interpretor error. literally just a bandaid
     solutions = []
 
     for i in range(size):
         solutions += [Solution(shapes, board_dimensions, 0)]
 
     return solutions
+
+
+def chunks(list_to_chunk, every_x_elements_chunk):
+    every_x_elements_chunk = max(1, every_x_elements_chunk)
+    return list(list_to_chunk[i:i + every_x_elements_chunk] for i in range(0, len(list_to_chunk), every_x_elements_chunk))
+
+
+def is_even(x):
+    return x % 2 == 0
+
+
+def n_point_crossover(list_one, list_two, n):
+    length_of_lists = min(len(list_one), len(list_two))
+    number_of_chunks = floor(length_of_lists / n)
+
+    chunk_one, chunk_two = chunks(list_one, number_of_chunks), chunks(list_two, number_of_chunks)
+    solution_one, solution_two = [], []
+
+    for index, (segment_one, segment_two) in enumerate(zip(chunk_one, chunk_two)):
+
+        if is_even(index):
+            solution_one += segment_one
+            solution_two += segment_two
+        else:
+            solution_one += segment_two
+            solution_two += segment_two
+
+    return solution_one, solution_two
 
 
 def shuffled_array(array):
