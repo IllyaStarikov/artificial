@@ -157,10 +157,9 @@ def output_to_file(filename, string):
         out.write(string + "\n")
 
 
-def output_solution(solution_directory, solution):
+def output_solution(solution_directory, solution, run):
     current_date_time = time.strftime("%Y-%m-%d_%H-%M-%S")
     filename = solution_directory + "/solution-" + current_date_time + ".txt"
-    run = solution.get_run()
 
     output_to_file(filename, "-- Solution Found on Run #{} --".format(run))
     for shape in solution.get_shapes():

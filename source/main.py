@@ -40,6 +40,7 @@ def main():
             if fitness > max_fitness:
                 max_solution = current_best_solution
                 max_fitness = fitness
+                max_run = run
 
             fitnesses += [(iterations, fitness, average_fitness)]
             iterations += evolutionary_algorithm.mu
@@ -50,7 +51,7 @@ def main():
         output_log(path_to_log, configuration_parameters, fitnesses, run)
         print("Run #{} Finished With Max Fitness.".format(run), max_fitness)
 
-        output_solution(path_to_solution, max_solution)
+    output_solution(path_to_solution, max_solution, max_run)
     print("Max Fitness: {}".format(max_fitness))
 
 
