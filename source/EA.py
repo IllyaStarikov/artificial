@@ -192,8 +192,7 @@ class EA():
         return selected
 
     def __truncation(self, cutoff):
-        shuffle(self.get_solutions())
-        return self.get_solutions()[:cutoff]
+        return sorted(self.shapes)[:cutoff]
 
     def get_solutions(self):
         return self.solutions
