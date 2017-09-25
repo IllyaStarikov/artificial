@@ -10,16 +10,13 @@
 import random
 import json
 import time
-import os
 import sys
+import os
 
+from EA import EA
 from copy import deepcopy
 from shape import Shape
-from enum import Enum
 from math import floor
-
-
-Side = Enum("left", "right")
 
 
 def generate_initial_population(board_dimensions, shapes, size):
@@ -27,7 +24,7 @@ def generate_initial_population(board_dimensions, shapes, size):
     solutions = []
 
     for i in range(size):
-        solutions += [Solution(shapes, board_dimensions, 0)]
+        solutions += [deepcopy(Solution(shapes, board_dimensions, 0))]
 
     return solutions
 
@@ -41,29 +38,30 @@ def is_even(x):
     return x % 2 == 0
 
 
+def get_percentage_change(percent):
+    x = random_arbitrary(1, 100)
+    return percent < x
+
+
 def n_point_crossover(list_one, list_two, n):
     length_of_lists = min(len(list_one), len(list_two))
     number_of_chunks = floor(length_of_lists / n)
 
     chunk_one, chunk_two = chunks(list_one, number_of_chunks), chunks(list_two, number_of_chunks)
-    solution_one, solution_two = [], []
+    solution_one = []
 
     for index, (segment_one, segment_two) in enumerate(zip(chunk_one, chunk_two)):
-
-        if is_even(index):
+        if index % 2 == 0:
             solution_one += segment_one
-            solution_two += segment_two
         else:
             solution_one += segment_two
-            solution_two += segment_two
 
-    return solution_one, solution_two
+    return solution_one
 
 
 def shuffled_array(array):
-    array2 = deepcopy(array)
-    random.shuffle(array2)
-    return array2
+    random.shuffle(array)
+    return array
 
 
 def add_list_of_sets(sets):
@@ -108,10 +106,16 @@ def static_vars(**kwargs):
     return decorate
 
 
+def get_number_of_runs():
+    return get_config_contents(sys.argv[1])["number-of-runs"]
+
+
 def configure():
     configuration = get_config_contents(sys.argv[1])
-    max_iterations = configuration["iterations"]
-    number_of_runs = configuration["runs"]
+
+    evolutionary_algorithm = EA(configuration)  # shapes is the input
+    path_to_solution = configuration["path-to-solution"]
+    path_to_log = configuration["path-to-log"]
 
     if configuration["predefined-seed"]:
         seed_ = configuration["seed"]
@@ -120,19 +124,14 @@ def configure():
         seed_ = random_arbitrary(0, 2**31 - 1)
         random.seed(seed_)
 
-    filename = sys.argv[2]
-    initial_population = configuration["initial-population"]
-    path_to_solution = configuration["path-to-solution"]
-    path_to_log = configuration["path-to-log"]
-    mutation_rate = configuration["mutation-rate"]
-
     if not os.path.isdir(path_to_solution):
         os.makedirs(path_to_solution)
 
     if not os.path.isdir(path_to_log):
         os.makedirs(path_to_log)
 
-    return filename, max_iterations, number_of_runs, seed_, path_to_log, path_to_solution, initial_population, mutation_rate
+    configuration["seed"] = seed_
+    return evolutionary_algorithm, path_to_solution, path_to_log, configuration
 
 
 def get_shapes_and_board_dimensions(filename):
@@ -159,12 +158,11 @@ def output_to_file(filename, string):
 
 
 def output_solution(solution_directory, solution):
-    # current_date_time = time.strftime("%Y-%m-%d_%H-%M-%S")
-    # filename = solution_directory + "/solution-" + current_date_time + ".txt"
-    # run = solution.get_run()
+    current_date_time = time.strftime("%Y-%m-%d_%H-%M-%S")
+    filename = solution_directory + "/solution-" + current_date_time + ".txt"
+    run = solution.get_run()
 
-    filename = solution_directory + "solution_this_one.txt"
-    # output_to_file(filename, "-- Solution Found on Run #{} --".format(run))
+    output_to_file(filename, "-- Solution Found on Run #{} --".format(run))
     for shape in solution.get_shapes():
         row, column = shape.get_start_position()
         rotations = shape.get_rotations()
@@ -181,11 +179,12 @@ def output_log(path_to_log, configuration_parameters, fitnesses, run):
         output_log.already_output_header = True
 
         for key, value in configuration_parameters.items():
-            output_to_file(output_log.filename, "{}: {}".format(key.ljust(20), str(value)))
+            output_to_file(output_log.filename, "{}: {}".format(str(key.ljust(20)), str(value)))
+        output_to_file(output_log.filename, "")
 
     output_to_file(output_log.filename, "-- Run #{} --".format(run))
 
-    for iteration, fitness in fitnesses:
-        output_to_file(output_log.filename, "{}\t{}".format(iteration, fitness))
+    for iteration, fitness, average_fitness in fitnesses:
+        output_to_file(output_log.filename, "{}\t{}\t{}".format(iteration, average_fitness, fitness))
 
     output_log.last_run = run

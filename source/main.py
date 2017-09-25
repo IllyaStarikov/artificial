@@ -7,37 +7,45 @@
 # Copyright 2017. Illya Starikov. All rights reserved.
 #
 
-from os import path
-from solution import Solution
-from utilities import configure, get_shapes_and_board_dimensions, output_log, output_solution
+from utilities import configure, output_log, output_solution, get_number_of_runs
+from history import History
+from math import floor
 
 
 def main():
-    filename, max_iterations, number_of_runs, seed, path_to_log, path_to_solution = configure()
-
-    configuration_parameters = {"Input File": path.abspath(filename), "Max Iterations": max_iterations, "Runs": number_of_runs, "Seed": seed, "Log Path": path.abspath(path_to_log), "Solution Path": path.abspath(path_to_solution)}
-
     max_fitness = -1
 
-    for run in range(1, number_of_runs + 1):
-        fitnesses = []
+    for run in range(1, get_number_of_runs() + 1):
+        evolutionary_algorithm, path_to_solution, path_to_log, configuration_parameters = configure()
 
-        for iteration in range(max_iterations):
-            shapes, dimensions = get_shapes_and_board_dimensions(filename)
-            solution = Solution(shapes, dimensions, run)
-            fitness = solution.fitness(dimensions)
+        chunks = floor(evolutionary_algorithm.get_evalutions_until_termination() / 10)
+
+        iterations = 0
+        fitnesses = []
+        max_solution = max(evolutionary_algorithm.get_solutions())
+
+        history = History(evolutionary_algorithm.get_termination_number_best(), evolutionary_algorithm.get_termination_number_average())
+
+        while not evolutionary_algorithm.determine_if_should_terminate(iterations, history):
+            offspring = evolutionary_algorithm.reproduce()
+            evolutionary_algorithm.combine_offspring_and_parents(offspring)
+
+            evolutionary_algorithm.run_survival()
+
+            current_best_solution = evolutionary_algorithm.get_best()
+            fitness = current_best_solution.fitness()
+
+            average_fitness = evolutionary_algorithm.get_average()
 
             if fitness > max_fitness:
-                max_solution = solution
+                max_solution = current_best_solution
                 max_fitness = fitness
 
-            if len(fitnesses) < 1:
-                greatest_fitness_thus_far = 0
-            else:
-                _, greatest_fitness_thus_far = fitnesses[-1]
+            fitnesses += [(iterations, fitness, average_fitness)]
+            iterations += evolutionary_algorithm.mu
 
-            if fitness > greatest_fitness_thus_far:
-                fitnesses += [(iteration, fitness)]
+            if iterations % chunks == 0:
+                print("Iteration #{} Finished".format(iterations))
 
         output_log(path_to_log, configuration_parameters, fitnesses, run)
         print("Run #{} Finished With Max Fitness.".format(run), max_fitness)

@@ -35,7 +35,7 @@ class Solution():
         max_length, _ = self.get_dimensions()
         rightmost_column = 0
 
-        for shape in self.get_shapes():
+        for shape in self.__get_shapes_unsorted():
             _, max_right = shape.get_rightmost_point()
             rightmost_shape_value = max_right
 
@@ -63,18 +63,13 @@ class Solution():
         solution_one_shapes = deepcopy(self.get_shapes())
         solution_two_shapes = deepcopy(other_solution.get_shapes())
 
-        solution_one_shapes, solution_two_shapes = n_point_crossover(solution_one_shapes, solution_two_shapes, n)
+        solution_one_shapes = n_point_crossover(solution_one_shapes, solution_two_shapes, n)
 
         solution_one = Solution([], self.get_dimensions(), self.get_run())
-        solution_two = Solution([], other_solution.get_dimensions(), other_solution.get_run())
-
         solution_one.set_shapes(solution_one_shapes)
-        solution_two.set_shapes(solution_two_shapes)
-
         solution_one.repair()
-        # solution_two.repair()
 
-        return solution_one, solution_two
+        return solution_one
 
     def repair(self):
         all_points = set()
@@ -177,6 +172,9 @@ class Solution():
     def get_shapes(self):
         return sorted(self.shapes, key=operator.attrgetter('shape_number'))
 
+    def __get_shapes_unsorted(self):
+        return self.shapes
+
     def set_all_used_points(self, points):
         self.all_points = points
 
@@ -191,3 +189,7 @@ class Solution():
 
     def get_dimensions(self):
         return self.dimensions
+
+    # MARK: Operator Overloading
+    def __lt__(self, other):
+        return self.fitness() < other.fitness()
