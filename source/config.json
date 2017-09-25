@@ -9,7 +9,7 @@
     "survival-selection": "Truncation",
     "termination": ["evaluations", "no-change-in-average", 10, "no-change-in-best", 10],
     "evaluations-until-termination": 10000,
-    "number-of-runs": 2,
+    "number-of-runs": 30,
     "path-to-solution": "./solution",
     "path-to-log": "./log",
     "predefined-seed": false,
