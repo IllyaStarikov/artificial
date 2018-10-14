@@ -28,7 +28,7 @@ class Function:
         """Evaluate the function at a given node
 
         Args:
-            node (Point): The point to evaluate the function.
+            node (Point): The point to evaluate the function in the format (min, max).
 
         Returns:
             int: The value evaluated function(x, y).
@@ -44,7 +44,7 @@ class Function:
         """Get the x bounds of the function.
 
         Returns:
-            tuple<int, int>: The x bounds of function.
+            tuple<int, int>: The x bounds of function in the format (min, max).
         """
 
         return self.__x_bounds

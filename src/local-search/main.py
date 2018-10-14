@@ -31,7 +31,7 @@ def main():
     function = Function(lambda x, y: (-x**2 - y**2) + (x * y * cos(x) * sin(y)), (-100, 100), (-100, 100))
 
     hill_climber = StochasticHillClimberWithRestarts(function)
-    hill_climber.climb(100)
+    hill_climber.climb(10)
     print("-"*100)
 
 
