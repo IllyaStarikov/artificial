@@ -22,33 +22,34 @@ class EA:
         self.μ, self.λ = μ, λ
 
     def search(self, termination_conditions):
-        """Run the genetic algorithm until the fittness reaches 100%.
+        """Run the genetic algorithm with specified `termination_conditions`.
 
         Args:
             termination_conditions (list<TerminationCondition>): The criteria that must be met before terminating (meeting any of them will terminate the EA).
 
         :returns: The fittest individual.
         """
-        epochs = 1
-        generation = 1
-        total_generations = 1
-
+        epochs, generation, total_generations = 1, 1, 1
         self.population = Population(self.μ, self.λ)
 
         previous_epoch = []
         fitness_getter = lambda: [individual.fitness for individual in self.population.individuals]  # noqa
 
         termination_manager = TerminationManager(termination_conditions, fitness_getter)
-        epoch_manager = TerminationManager([NoChangeInBestFitness(100), NoChangeInAverageFitness(100)], fitness_getter)
+        epoch_manager_best_fitness = TerminationManager([NoChangeInBestFitness(250)], fitness_getter)
+        epoch_manager_average_fitness = TerminationManager([NoChangeInAverageFitness(250)], fitness_getter)
 
         while not termination_manager.should_terminate():
-            if epoch_manager.should_terminate():
+            if epoch_manager_best_fitness.should_terminate() and epoch_manager_average_fitness.should_terminate():
                 if len(previous_epoch) > 0:
-                    epoch_manager.reset()
+                    epoch_manager_best_fitness.reset()
+                    epoch_manager_average_fitness.reset()
+
                     self.population.individuals += previous_epoch
                     previous_epoch = []
                 else:
-                    epoch_manager.reset()
+                    epoch_manager_best_fitness.reset()
+                    epoch_manager_average_fitness.reset()
 
                     previous_epoch = self.population.individuals
                     self.population = Population(self.μ, self.λ)

@@ -7,6 +7,7 @@
 # Copyright 2018. Illya Starikov. MIT License.
 #
 import datetime
+from math import ceil
 
 from termination_conditions import _TerminationCondition, FitnessTarget, DateTarget, NoChangeInAverageFitness, NoChangeInBestFitness, NumberOfFitnessEvaluations, NumberOfGenerations
 
@@ -102,11 +103,16 @@ class TerminationManager:
         number_of_generations_till_termination = target_class.number_of_generations
 
         self.__average_fitnesses = TerminationManager.__add_fitness_to_fitness_queue(average_fitness, self.__average_fitnesses, number_of_generations_till_termination)
-        oldest_fitness = self.__average_fitnesses[0]
+        if len(self.__average_fitnesses) < number_of_generations_till_termination:
+            return False
 
-        should_terminate_ = all(fitness <= oldest_fitness for fitness in self.__average_fitnesses[1:])
+        last_quartile_mark = ceil(len(self.__average_fitnesses) / 4)
+        oldest_fitnesses = self.__average_fitnesses[:last_quartile_mark]
+        average_fitness_of_last_quartile = sum(oldest_fitnesses) / len(oldest_fitnesses)
 
-        return should_terminate_ if len(self.__average_fitnesses) >= number_of_generations_till_termination else False
+        should_terminate_ = all(fitness <= average_fitness_of_last_quartile for fitness in self.__average_fitnesses[last_quartile_mark:])
+
+        return should_terminate_
 
     def __best_fitness_should_terminate(self):
         """Determine if should terminate based on the average fitness for the last N generations.
@@ -121,11 +127,17 @@ class TerminationManager:
         number_of_generations_till_termination = target_class.number_of_generations
 
         self.__best_fitnesses = TerminationManager.__add_fitness_to_fitness_queue(best_fitness, self.__best_fitnesses, number_of_generations_till_termination)
-        oldest_fitness = self.__best_fitnesses[0]
 
-        should_terminate_ = all(fitness <= oldest_fitness for fitness in self.__best_fitnesses[1:])
+        if len(self.__best_fitnesses) < number_of_generations_till_termination:
+            return False
 
-        return should_terminate_ if len(self.__best_fitnesses) >= number_of_generations_till_termination else False
+        last_quartile_mark = ceil(len(self.__best_fitnesses) / 4)
+        oldest_fitnesses = self.__best_fitnesses[:last_quartile_mark]
+        average_fitness_of_last_quartile = sum(oldest_fitnesses) / len(oldest_fitnesses)
+
+        should_terminate_ = all(fitness <= average_fitness_of_last_quartile for fitness in self.__best_fitnesses[last_quartile_mark:])
+
+        return should_terminate_
 
     def __fitness_evaluations_should_terminate(self):
         """Determine if should terminate based on the number of fitness evaluations.
@@ -169,4 +181,5 @@ class TerminationManager:
         if len(fitnesses) < number_of_generations:
             return fitnesses + [new_fitness]
 
-        return [new_fitness] + fitnesses[:number_of_generations - 1]
+        fitnesses.pop(0)
+        return fitnesses + [new_fitness]
