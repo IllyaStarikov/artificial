@@ -18,7 +18,12 @@
       "Bash(git commit:*)",
       "Bash(find:*)",
       "Bash(tree:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:google.github.io)",
+      "Bash(python3:*)",
+      "Bash(for f in src/evolutionary/*.py src/local_search/*.py)",
+      "Bash(do echo \"=== $f ===\" grep -n \"^import \\|^from \" \"$f\")",
+      "Bash(done)"
     ]
   }
 }

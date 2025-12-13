@@ -20,7 +20,6 @@ from __future__ import annotations
 import random
 import typing
 
-import function
 import hill_climber
 import node
 
@@ -86,7 +85,9 @@ class StochasticHillClimber(hill_climber.HillClimber):
             neighbors = self._generate_all_neighbors(current_node)
             successor = self._get_random_uphill_move(current_node, neighbors)
 
-            if self._value_at_node(successor) <= self._value_at_node(current_node):
+            successor_val = self._value_at_node(successor)
+            current_val = self._value_at_node(current_node)
+            if successor_val <= current_val:
                 return current_node
 
             current_node = successor
@@ -113,12 +114,17 @@ class StochasticHillClimber(hill_climber.HillClimber):
                 )
 
                 neighbors = self._generate_all_neighbors(current_node)
-                successor = self._get_random_uphill_move(current_node, neighbors)
+                successor = self._get_random_uphill_move(
+                    current_node, neighbors
+                )
 
-                if self._value_at_node(current_node) > self._value_at_node(best_node):
+                current_val = self._value_at_node(current_node)
+                best_val = self._value_at_node(best_node)
+                if current_val > best_val:
                     best_node = current_node
 
-                if self._value_at_node(successor) <= self._value_at_node(current_node):
+                successor_val = self._value_at_node(successor)
+                if successor_val <= current_val:
                     break
 
                 current_node = successor

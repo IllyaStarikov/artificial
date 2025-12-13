@@ -84,7 +84,9 @@ class HillClimber:
         random.shuffle(nodes)
         return nodes
 
-    def _highest_valued_node(self, neighbors: typing.List[node.Node]) -> node.Node:
+    def _highest_valued_node(
+        self, neighbors: typing.List[node.Node]
+    ) -> node.Node:
         """Find the node with the highest function value.
 
         Args:
@@ -112,7 +114,9 @@ class HillClimber:
             neighbors = self._generate_all_neighbors(current_node)
             successor = self._highest_valued_node(neighbors)
 
-            if self._value_at_node(successor) <= self._value_at_node(current_node):
+            successor_val = self._value_at_node(successor)
+            current_val = self._value_at_node(current_node)
+            if successor_val <= current_val:
                 return current_node
 
             current_node = successor

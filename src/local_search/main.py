@@ -44,7 +44,8 @@ def main() -> None:
         (-100, 100)
     )
 
-    stochastic_climber = stochastic_hill_climber.StochasticHillClimber(complex_func)
+    shc = stochastic_hill_climber.StochasticHillClimber
+    stochastic_climber = shc(complex_func)
     result = stochastic_climber.climb()
     print(f"Found optimum at: ({result.x}, {result.y})")
     print("-" * 80)
@@ -53,7 +54,7 @@ def main() -> None:
     print("\nStochastic Hill Climber with 10 Restarts")
     print("=" * 80)
 
-    stochastic_climber = stochastic_hill_climber.StochasticHillClimber(complex_func)
+    stochastic_climber = shc(complex_func)
     result = stochastic_climber.climb(restarts=10)
     print(f"Found optimum at: ({result.x}, {result.y})")
     print("-" * 80)

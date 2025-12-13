@@ -49,7 +49,9 @@ class Individual:
         Returns:
             The fitness score as a percentage.
         """
-        return 100 * self.genotype.clauses_satisfied / self.genotype.total_clauses
+        satisfied = self.genotype.clauses_satisfied
+        total = self.genotype.total_clauses
+        return 100 * satisfied / total
 
     @staticmethod
     def mutate(individual: Individual, rate: float) -> None:

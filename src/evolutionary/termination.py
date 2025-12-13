@@ -6,8 +6,13 @@ to determine when an evolutionary algorithm should stop.
 Example:
     import termination
 
-    conditions = [termination.FitnessTarget(95.0), termination.NumberOfGenerations(1000)]
-    manager = termination.TerminationManager(conditions, lambda: [90.0, 85.0, 92.0])
+    conditions = [
+        termination.FitnessTarget(95.0),
+        termination.NumberOfGenerations(1000),
+    ]
+    manager = termination.TerminationManager(
+        conditions, lambda: [90.0, 85.0, 92.0]
+    )
 
     while not manager.should_terminate():
         # Run EA iteration
@@ -161,7 +166,7 @@ class TerminationManager:
 
         Args:
             termination_conditions: List of conditions to check.
-            fitness_selector: Callable that returns current population fitnesses.
+            fitness_selector: Callable returning current population fitnesses.
 
         Raises:
             AssertionError: If termination_conditions is not a list or contains
@@ -268,7 +273,8 @@ class TerminationManager:
             return False
 
         quartile_mark = math.ceil(len(self._average_fitnesses) / 4)
-        oldest_avg = sum(self._average_fitnesses[:quartile_mark]) / quartile_mark
+        oldest_sum = sum(self._average_fitnesses[:quartile_mark])
+        oldest_avg = oldest_sum / quartile_mark
 
         return all(
             f <= oldest_avg
@@ -300,7 +306,8 @@ class TerminationManager:
             return False
 
         quartile_mark = math.ceil(len(self._best_fitnesses) / 4)
-        oldest_avg = sum(self._best_fitnesses[:quartile_mark]) / quartile_mark
+        oldest_sum = sum(self._best_fitnesses[:quartile_mark])
+        oldest_avg = oldest_sum / quartile_mark
 
         return all(
             f <= oldest_avg
@@ -320,7 +327,8 @@ class TerminationManager:
             c for c in self.termination_conditions
             if isinstance(c, NumberOfFitnessEvaluations)
         )
-        return self._num_fitness_evaluations > condition.number_of_fitness_evaluations
+        max_evals = condition.number_of_fitness_evaluations
+        return self._num_fitness_evaluations > max_evals
 
     def _check_generations(self) -> bool:
         """Check if the generation limit has been reached.

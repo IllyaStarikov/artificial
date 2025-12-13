@@ -115,9 +115,9 @@ class Population:
         new_population.individuals = []
 
         candidates = copy.deepcopy(pop.individuals)
-        tournament_size = min(25, len(candidates))
 
         for _ in range(pop.mu):
+            tournament_size = min(25, len(candidates))
             tournament = random.sample(candidates, tournament_size)
             winner = max(tournament, key=lambda ind: ind.fitness)
             new_population.individuals.append(winner)

@@ -11,7 +11,9 @@ Example:
     import function
     import stochastic_hill_climber
 
-    func = function.Function(lambda x, y: -(x**2 + y**2), (-100, 100), (-100, 100))
+    func = function.Function(
+        lambda x, y: -(x**2 + y**2), (-100, 100), (-100, 100)
+    )
     climber = stochastic_hill_climber.StochasticHillClimber(func)
     optimum = climber.climb(restarts=10)
 """

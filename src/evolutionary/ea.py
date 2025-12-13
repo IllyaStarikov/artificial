@@ -46,7 +46,8 @@ class EA:
         self.population: population.Population = None
 
     def search(
-        self, termination_conditions: typing.List[termination.TerminationCondition]
+        self,
+        termination_conditions: typing.List[termination.TerminationCondition],
     ) -> "individual.Individual":
         """Run the evolutionary algorithm until termination.
 
@@ -96,13 +97,19 @@ class EA:
                     epoch_manager_best.reset()
                     epoch_manager_avg.reset()
                     previous_epoch = self.population.individuals
-                    self.population = population.Population(self.mu, self.lambda_)
+                    self.population = population.Population(
+                        self.mu, self.lambda_
+                    )
                     generation = 0
                     epochs += 1
 
             # Selection and reproduction
-            self.population = population.Population.survival_selection(self.population)
-            offspring = population.Population.generate_offspring(self.population)
+            self.population = population.Population.survival_selection(
+                self.population
+            )
+            offspring = population.Population.generate_offspring(
+                self.population
+            )
             self.population.individuals += offspring.individuals
 
             self._log(total_generations, epochs, generation)

@@ -93,7 +93,9 @@ class SAT:
             lines_without_comments = [
                 line for line in lines if line and line[0] not in ['c', 'p']
             ]
-            lines_without_endings = [line[:-2] for line in lines_without_comments]
+            lines_without_endings = [
+                line[:-2] for line in lines_without_comments
+            ]
             return lines_without_endings
 
     def _parse_clauses(self, lines_from_cnf: typing.List[str]) -> None:
@@ -111,7 +113,10 @@ class SAT:
 
             for variable in variables:
                 negated = '-' in variable
-                variable_name = variable.replace('-', '') if negated else variable
+                if negated:
+                    variable_name = variable.replace('-', '')
+                else:
+                    variable_name = variable
 
                 self._variables[variable_name] = None
                 clause.add_variable(variable_name, negated)
@@ -148,7 +153,10 @@ class SAT:
         Returns:
             Count of clauses that evaluate to True.
         """
-        return sum(1 for clause in self._clauses if clause.evaluate(self._variables))
+        return sum(
+            1 for clause in self._clauses
+            if clause.evaluate(self._variables)
+        )
 
     def __getitem__(self, key: str) -> bool:
         """Get the value of a variable.
