@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import typing
 
+import individual
 import population
 import termination
 
@@ -43,12 +44,12 @@ class EA:
         """
         self.mu = mu
         self.lambda_ = lambda_
-        self.population: population.Population = None
+        self.population: typing.Optional[population.Population] = None
 
     def search(
         self,
         termination_conditions: typing.List[termination.TerminationCondition],
-    ) -> "individual.Individual":
+    ) -> individual.Individual:
         """Run the evolutionary algorithm until termination.
 
         Executes the EA loop with epoch-based restarts. When both average
@@ -67,7 +68,7 @@ class EA:
         total_generations = 1
 
         self.population = population.Population(self.mu, self.lambda_)
-        previous_epoch: typing.List["individual.Individual"] = []
+        previous_epoch: typing.List[individual.Individual] = []
 
         def fitness_getter() -> typing.List[float]:
             return [ind.fitness for ind in self.population.individuals]

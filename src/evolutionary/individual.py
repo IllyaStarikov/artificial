@@ -14,6 +14,7 @@ Example:
 from __future__ import annotations
 
 import random
+import typing
 
 import sat
 
@@ -32,13 +33,21 @@ class Individual:
 
     cnf_filename: str = ""
 
-    def __init__(self) -> None:
-        """Initialize an Individual with random variable assignments.
+    def __init__(self, genotype: typing.Optional[sat.SAT] = None) -> None:
+        """Initialize an Individual.
+
+        Args:
+            genotype: Optional pre-built SAT instance. If None, creates a new
+                random SAT from cnf_filename.
 
         Note:
-            Individual.cnf_filename must be set before creating instances.
+            Individual.cnf_filename must be set before creating instances
+            without a genotype.
         """
-        self.genotype = sat.SAT(Individual.cnf_filename)
+        if genotype is None:
+            self.genotype = sat.SAT(Individual.cnf_filename)
+        else:
+            self.genotype = genotype
 
     @property
     def fitness(self) -> float:
@@ -110,9 +119,7 @@ class Individual:
             ])
             new_genotype[variable] = gene
 
-        ind = Individual()
-        ind.genotype = new_genotype
-        return ind
+        return Individual(genotype=new_genotype)
 
     @staticmethod
     def _n_point_crossover(
@@ -141,9 +148,7 @@ class Individual:
                 new_genotype[variables[i]] = parent.genotype[variables[i]]
                 i += 1
 
-        ind = Individual()
-        ind.genotype = new_genotype
-        return ind
+        return Individual(genotype=new_genotype)
 
     @staticmethod
     def _davis_crossover(
@@ -175,6 +180,4 @@ class Individual:
         for variable in variables[split_two:]:
             new_genotype[variable] = parent_two.genotype[variable]
 
-        ind = Individual()
-        ind.genotype = new_genotype
-        return ind
+        return Individual(genotype=new_genotype)

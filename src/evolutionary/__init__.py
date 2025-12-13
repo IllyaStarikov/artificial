@@ -7,14 +7,31 @@ This module provides a framework for evolutionary algorithms, including:
 - Population management with tournament selection
 
 Example:
-    import ea
-    import individual
-    import termination
+    import evolutionary
 
-    individual.Individual.cnf_filename = "input.cnf"
-    algorithm = ea.EA(mu=100, lambda_=50)
-    result = algorithm.search([termination.FitnessTarget(95.0)])
+    evolutionary.Individual.cnf_filename = "input.cnf"
+    algorithm = evolutionary.EA(mu=100, lambda_=50)
+    result = algorithm.search([evolutionary.FitnessTarget(95.0)])
 """
+
+import ea
+import individual
+import population
+import sat
+import termination
+
+EA = ea.EA
+Individual = individual.Individual
+Population = population.Population
+SAT = sat.SAT
+TerminationCondition = termination.TerminationCondition
+TerminationManager = termination.TerminationManager
+FitnessTarget = termination.FitnessTarget
+DateTarget = termination.DateTarget
+NoChangeInAverageFitness = termination.NoChangeInAverageFitness
+NoChangeInBestFitness = termination.NoChangeInBestFitness
+NumberOfFitnessEvaluations = termination.NumberOfFitnessEvaluations
+NumberOfGenerations = termination.NumberOfGenerations
 
 __all__ = [
     "EA",

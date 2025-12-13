@@ -88,7 +88,7 @@ class SAT:
         Returns:
             List of clause strings with comments and line endings removed.
         """
-        with open(filename) as fh:
+        with open(filename, encoding='utf-8') as fh:
             lines = [line.replace('\n', '') for line in fh.readlines()]
             lines_without_comments = [
                 line for line in lines if line and line[0] not in ['c', 'p']
@@ -168,9 +168,10 @@ class SAT:
             The boolean value assigned to the variable.
 
         Raises:
-            AssertionError: If the variable does not exist.
+            KeyError: If the variable does not exist.
         """
-        assert key in self.variables, f"Variable '{key}' does not exist"
+        if key not in self.variables:
+            raise KeyError(f"Variable '{key}' does not exist")
         return self._variables[key]
 
     def __setitem__(self, key: str, value: bool) -> None:
@@ -181,10 +182,13 @@ class SAT:
             value: The boolean value to assign.
 
         Raises:
-            AssertionError: If variable doesn't exist or value isn't boolean.
+            KeyError: If the variable does not exist.
+            TypeError: If the value is not a boolean.
         """
-        assert key in self.variables, f"Variable '{key}' does not exist"
-        assert isinstance(value, bool), "Value must be a boolean"
+        if key not in self.variables:
+            raise KeyError(f"Variable '{key}' does not exist")
+        if not isinstance(value, bool):
+            raise TypeError("Value must be a boolean")
         self._variables[key] = value
 
     def __str__(self) -> str:

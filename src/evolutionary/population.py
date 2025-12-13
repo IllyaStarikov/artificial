@@ -68,11 +68,8 @@ class Population:
         Returns:
             A tuple of two randomly selected individuals.
         """
-        split = random.choice(range(1, len(pop.individuals) - 1))
-        return (
-            random.choice(pop.individuals[:split]),
-            random.choice(pop.individuals[split:])
-        )
+        parents = random.sample(pop.individuals, 2)
+        return (parents[0], parents[1])
 
     @staticmethod
     def generate_offspring(pop: Population) -> Population:

@@ -37,7 +37,7 @@ class TerminationCondition:
     Subclasses define specific criteria for terminating an EA run.
     """
 
-    pass
+    ...
 
 
 class FitnessTarget(TerminationCondition):
@@ -169,13 +169,15 @@ class TerminationManager:
             fitness_selector: Callable returning current population fitnesses.
 
         Raises:
-            AssertionError: If termination_conditions is not a list or contains
+            TypeError: If termination_conditions is not a list or contains
                 invalid condition types.
         """
-        assert isinstance(termination_conditions, list)
-        assert all(
+        if not isinstance(termination_conditions, list):
+            raise TypeError("termination_conditions must be a list")
+        if not all(
             isinstance(c, TerminationCondition) for c in termination_conditions
-        ), "All conditions must be TerminationCondition instances"
+        ):
+            raise TypeError("All conditions must be TerminationCondition instances")
 
         self.termination_conditions = termination_conditions
         self._fitness_selector = fitness_selector
@@ -358,8 +360,7 @@ class TerminationManager:
         Returns:
             The updated queue with the new value.
         """
-        if len(queue) < max_length:
-            return queue + [value]
-
-        queue.pop(0)
-        return queue + [value]
+        queue.append(value)
+        if len(queue) > max_length:
+            return queue[1:]
+        return queue
