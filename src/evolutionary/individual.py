@@ -1,123 +1,168 @@
-#!/usr/local/bin/python3
-#
-# individual.py
-# src
-#
-# Created by Illya Starikov on 10/12/18.
-# Copyright 2018. Illya Starikov. MIT License.
-#
+"""Individual representation for evolutionary algorithms.
 
-from random import choice, sample
+This module provides the Individual class representing a candidate solution
+in the evolutionary algorithm, with support for mutation and recombination.
 
-from sat import SAT
+Example:
+    import individual
+
+    individual.Individual.cnf_filename = "input.cnf"
+    ind = individual.Individual()
+    print(f"Fitness: {ind.fitness}")
+"""
+
+from __future__ import annotations
+
+import random
+
+import sat
 
 
 class Individual:
-    cnf_filename = ""
+    """A candidate solution in the evolutionary algorithm.
 
-    def __init__(self):
-        """Initialize an Individual object.
+    Each individual has a genotype (SAT variable assignment) and a fitness
+    value based on the number of satisfied clauses.
+
+    Attributes:
+        cnf_filename: Class variable specifying the CNF file to use.
+        genotype: The SAT instance representing the individual's genes.
+        fitness: The fitness score (percentage of satisfied clauses).
+    """
+
+    cnf_filename: str = ""
+
+    def __init__(self) -> None:
+        """Initialize an Individual with random variable assignments.
 
         Note:
-            Individual.cnf_filename should be set before calling this.
+            Individual.cnf_filename must be set before creating instances.
         """
-        self.genotype = SAT(Individual.cnf_filename)
+        self.genotype = sat.SAT(Individual.cnf_filename)
 
     @property
-    def fitness(self):
-        """Get the fitness of an individual. This is done via a percentage of how many clauses are
-        satisfied.
+    def fitness(self) -> float:
+        """Calculate the fitness of this individual.
 
-        :return (float): The fitness of an individual.
+        Fitness is the percentage of satisfied clauses (0-100).
+
+        Returns:
+            The fitness score as a percentage.
         """
         return 100 * self.genotype.clauses_satisfied / self.genotype.total_clauses
 
     @staticmethod
-    def mutate(individual, rate):
-        """Mutation operator --- mutate an individual with a specified rate.
-        This is done via a uniform random mutation, by selecting random genes and swapping them.
+    def mutate(individual: Individual, rate: float) -> None:
+        """Apply mutation to an individual's genotype.
 
-        Note:
-            rate should be a floating point number (0.0 < rate < 1.0).
+        Performs uniform random mutation by flipping randomly selected
+        variables based on the mutation rate.
 
-        :individual (Individual): The individual to mutate.
-        :rate (float): The rate at which to mutate the individual's genotype.
+        Args:
+            individual: The individual to mutate (modified in-place).
+            rate: Mutation rate (0.0 to 1.0), proportion of variables to flip.
         """
-        number_of_variables_to_mutate = int(rate * individual.genotype.total_clauses)
+        num_to_mutate = int(rate * len(individual.genotype.variables))
 
-        for _ in range(number_of_variables_to_mutate):
-            variable_to_mutate = choice(individual.genotype.variables)
-            individual.genotype[variable_to_mutate] = not individual.genotype[variable_to_mutate]
+        for _ in range(num_to_mutate):
+            variable = random.choice(individual.genotype.variables)
+            individual.genotype[variable] = not individual.genotype[variable]
 
     @staticmethod
-    def recombine(parent_one, parent_two):
-        """Recombination operator --- combine two individuals to generate an offspring.
+    def recombine(parent_one: Individual, parent_two: Individual) -> Individual:
+        """Create offspring by recombining two parents.
 
-        :parent_one (Individual): The first parent.
-        :parent_two (Individual): The second parent.
-        :returns (Individual): The combination of the two parents (the offspring).
+        Uses n-point crossover with n=5 to create a new individual.
+
+        Args:
+            parent_one: The first parent.
+            parent_two: The second parent.
+
+        Returns:
+            A new individual combining genes from both parents.
         """
-
-        return Individual.__n_point_crossover(parent_one, parent_two, 5)
+        return Individual._n_point_crossover(parent_one, parent_two, 5)
 
     @staticmethod
-    def __uniform_crossover(parent_one, parent_two):
-        """Uniform Crossover --- create a genotype with random elements from `parent_one` and `parent_two`.
+    def _uniform_crossover(
+        parent_one: Individual, parent_two: Individual
+    ) -> Individual:
+        """Create offspring using uniform crossover.
 
-        :parent_one (Individual): The first parent.
-        :parent_two (Individual): The second parent.
-        :returns (Individual): The combination of the two parents (the offspring).
+        Each gene is randomly selected from either parent with equal
+        probability.
+
+        Args:
+            parent_one: The first parent.
+            parent_two: The second parent.
+
+        Returns:
+            A new individual with genes randomly selected from parents.
         """
-        new_genotype = SAT(Individual.cnf_filename)
+        new_genotype = sat.SAT(Individual.cnf_filename)
 
         for variable in parent_one.genotype.variables:
-            gene = choice([parent_one.genotype[variable], parent_two.genotype[variable]])
+            gene = random.choice([
+                parent_one.genotype[variable],
+                parent_two.genotype[variable]
+            ])
             new_genotype[variable] = gene
 
-        individual = Individual()
-        individual.genotype = new_genotype
-        return individual
+        ind = Individual()
+        ind.genotype = new_genotype
+        return ind
 
     @staticmethod
-    def __n_point_crossover(parent_one, parent_two, n):
-        """N-Point Crossover --- create a genotype with N sections from `parent_one` and `parent_two`.
+    def _n_point_crossover(
+        parent_one: Individual, parent_two: Individual, n: int
+    ) -> Individual:
+        """Create offspring using n-point crossover.
 
-        :parent_one (Individual): The first parent.
-        :parent_two (Individual): The second parent.
-        :n (int): The number of sections for recombination.
+        Divides the genome into n+1 sections, alternating between parents.
 
-        :returns (Individual): The combination of the two parents (the offspring).
+        Args:
+            parent_one: The first parent.
+            parent_two: The second parent.
+            n: Number of crossover points.
+
+        Returns:
+            A new individual with alternating sections from each parent.
         """
-        new_genotype = SAT(Individual.cnf_filename)
+        new_genotype = sat.SAT(Individual.cnf_filename)
         variables = sorted(parent_one.genotype.variables)
         splits = [(i * len(variables) // (n + 1)) for i in range(1, n + 2)]
 
         i = 0
         for index, split in enumerate(splits):
-            for variable_index in range(i, split):
-                gene = parent_one.genotype[variables[i]] if index % 2 == 0 else parent_two.genotype[variables[i]]
-                new_genotype[variables[i]] = gene
-
+            for _ in range(i, split):
+                parent = parent_one if index % 2 == 0 else parent_two
+                new_genotype[variables[i]] = parent.genotype[variables[i]]
                 i += 1
 
-        individual = Individual()
-        individual.genotype = new_genotype
-
-        return individual
+        ind = Individual()
+        ind.genotype = new_genotype
+        return ind
 
     @staticmethod
-    def __davis_crossover(parent_one, parent_two):
-        """Davis Crossover --- create a genotype from a random splice of `parent_two` and remaining slices from `parent_one`.
+    def _davis_crossover(
+        parent_one: Individual, parent_two: Individual
+    ) -> Individual:
+        """Create offspring using Davis order crossover.
 
-        :parent_one (Individual): The first parent.
-        :parent_two (Individual): The second parent.
-        :n (int): The number of sections for recombination.
+        Selects a random segment from parent_one and fills the rest from
+        parent_two.
 
-        :returns (Individual): The combination of the two parents (the offspring).
+        Args:
+            parent_one: The first parent (provides middle segment).
+            parent_two: The second parent (provides outer segments).
+
+        Returns:
+            A new individual with a segment from parent_one and rest from
+            parent_two.
         """
-        new_genotype = SAT(Individual.cnf_filename)
+        new_genotype = sat.SAT(Individual.cnf_filename)
         variables = sorted(parent_one.genotype.variables)
-        split_one, split_two = sorted(sample(range(len(variables)), 2))
+        split_one, split_two = sorted(random.sample(range(len(variables)), 2))
 
         for variable in variables[:split_one]:
             new_genotype[variable] = parent_two.genotype[variable]
@@ -128,7 +173,6 @@ class Individual:
         for variable in variables[split_two:]:
             new_genotype[variable] = parent_two.genotype[variable]
 
-        individual = Individual()
-        individual.genotype = new_genotype
-
-        return individual
+        ind = Individual()
+        ind.genotype = new_genotype
+        return ind

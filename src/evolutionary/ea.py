@@ -1,89 +1,136 @@
-#!/usr/local/bin/python3
-#
-# ea.py
-# src
-#
-# Created by Illya Starikov on 10/12/18.
-# Copyright 2018. Illya Starikov. MIT License.  #
+"""Evolutionary Algorithm implementation.
 
-from population import Population
-from termination_manager import TerminationManager
+This module provides the main EA class that orchestrates the evolutionary
+process, including population management, termination, and epoch-based restarts.
 
-from termination_conditions import NoChangeInAverageFitness, NoChangeInBestFitness
+Example:
+    import ea
+    import individual
+    import termination
+
+    individual.Individual.cnf_filename = "input.cnf"
+    algorithm = ea.EA(mu=100, lambda_=50)
+    result = algorithm.search([termination.FitnessTarget(95.0)])
+"""
+
+from __future__ import annotations
+
+import typing
+
+import population
+import termination
 
 
 class EA:
-    def __init__(self, μ, λ):
-        """Initialize an EA.
+    """Evolutionary Algorithm with configurable termination and epoch restarts.
 
-        :μ (int): The population size.
-        :λ (int): The offspring size.
-        """
-        self.μ, self.λ = μ, λ
+    Implements a (mu + lambda) evolutionary strategy with tournament selection,
+    recombination, and mutation. Supports epoch-based restarts when progress
+    stagnates.
 
-    def search(self, termination_conditions):
-        """Run the genetic algorithm with specified `termination_conditions`.
+    Attributes:
+        mu: Population size (number of parents).
+        lambda_: Offspring size (number of children per generation).
+        population: Current population of individuals.
+    """
+
+    def __init__(self, mu: int, lambda_: int) -> None:
+        """Initialize the evolutionary algorithm.
 
         Args:
-            termination_conditions (list<TerminationCondition>): The criteria that must be met before terminating (meeting any of them will terminate the EA).
-
-        :returns: The fittest individual.
+            mu: Population size (number of parents to maintain).
+            lambda_: Offspring size (number of children per generation).
         """
-        epochs, generation, total_generations = 1, 1, 1
-        self.population = Population(self.μ, self.λ)
+        self.mu = mu
+        self.lambda_ = lambda_
+        self.population: population.Population = None
 
-        previous_epoch = []
-        fitness_getter = lambda: [individual.fitness for individual in self.population.individuals]  # noqa
+    def search(
+        self, termination_conditions: typing.List[termination.TerminationCondition]
+    ) -> "individual.Individual":
+        """Run the evolutionary algorithm until termination.
 
-        termination_manager = TerminationManager(termination_conditions, fitness_getter)
-        epoch_manager_best_fitness = TerminationManager([NoChangeInBestFitness(250)], fitness_getter)
-        epoch_manager_average_fitness = TerminationManager([NoChangeInAverageFitness(250)], fitness_getter)
+        Executes the EA loop with epoch-based restarts. When both average
+        and best fitness stagnate for 250 generations, the algorithm either
+        merges populations or restarts with a new random population.
+
+        Args:
+            termination_conditions: List of conditions that trigger termination
+                (any condition being met will stop the algorithm).
+
+        Returns:
+            The fittest individual found during the search.
+        """
+        epochs = 1
+        generation = 1
+        total_generations = 1
+
+        self.population = population.Population(self.mu, self.lambda_)
+        previous_epoch: typing.List["individual.Individual"] = []
+
+        def fitness_getter() -> typing.List[float]:
+            return [ind.fitness for ind in self.population.individuals]
+
+        termination_manager = termination.TerminationManager(
+            termination_conditions, fitness_getter
+        )
+        epoch_manager_best = termination.TerminationManager(
+            [termination.NoChangeInBestFitness(250)], fitness_getter
+        )
+        epoch_manager_avg = termination.TerminationManager(
+            [termination.NoChangeInAverageFitness(250)], fitness_getter
+        )
 
         while not termination_manager.should_terminate():
-            if epoch_manager_best_fitness.should_terminate() and epoch_manager_average_fitness.should_terminate():
-                if len(previous_epoch) > 0:
-                    epoch_manager_best_fitness.reset()
-                    epoch_manager_average_fitness.reset()
-
+            # Check for epoch restart
+            if (epoch_manager_best.should_terminate() and
+                    epoch_manager_avg.should_terminate()):
+                if previous_epoch:
+                    # Merge with previous epoch
+                    epoch_manager_best.reset()
+                    epoch_manager_avg.reset()
                     self.population.individuals += previous_epoch
                     previous_epoch = []
                 else:
-                    epoch_manager_best_fitness.reset()
-                    epoch_manager_average_fitness.reset()
-
+                    # Start new epoch
+                    epoch_manager_best.reset()
+                    epoch_manager_avg.reset()
                     previous_epoch = self.population.individuals
-                    self.population = Population(self.μ, self.λ)
-
+                    self.population = population.Population(self.mu, self.lambda_)
                     generation = 0
                     epochs += 1
 
-            self.population = Population.survival_selection(self.population)
-
-            offspring = Population.generate_offspring(self.population)
+            # Selection and reproduction
+            self.population = population.Population.survival_selection(self.population)
+            offspring = population.Population.generate_offspring(self.population)
             self.population.individuals += offspring.individuals
 
-            self.__log(total_generations, epochs, generation)
+            self._log(total_generations, epochs, generation)
 
             total_generations += 1
             generation += 1
 
-        print("Result: {}".format(self.population.fittest.genotype))
+        print(f"Result: {self.population.fittest.genotype}")
         return self.population.fittest
 
-    def __log(self, total_generations, epochs, generation):
-        """Log the process of the Evolutionary Algorithm.
+    def _log(
+        self, total_generations: int, epochs: int, generation: int
+    ) -> None:
+        """Log the current state of the evolutionary algorithm.
 
         Args:
-            total_generations (int): The total number of generations that have passed.
-            epochs (int): The number of epochs that have passed.
-            generations (int): The number of generations in this, current epoch.
+            total_generations: Total number of generations across all epochs.
+            epochs: Current epoch number.
+            generation: Generation number within the current epoch.
         """
-        fitnesses = [individual.fitness for individual in self.population.individuals]
-
+        fitnesses = [ind.fitness for ind in self.population.individuals]
         best_fitness = max(fitnesses)
-        average_fitness = sum(fitnesses) / len(fitnesses)
+        avg_fitness = sum(fitnesses) / len(fitnesses)
 
-        format_string = "Total Generations #{}, Epoch #{}, Generation #{}: Best – {:.4f}, Average – {:.4f}"
-        log_string = format_string.format(total_generations, epochs, generation, best_fitness, average_fitness)
-
-        print(log_string)
+        print(
+            f"Total Generations #{total_generations}, "
+            f"Epoch #{epochs}, "
+            f"Generation #{generation}: "
+            f"Best - {best_fitness:.4f}, "
+            f"Average - {avg_fitness:.4f}"
+        )

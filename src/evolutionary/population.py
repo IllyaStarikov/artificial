@@ -1,90 +1,126 @@
-#!/usr/local/bin/python3
-#
-# population.py
-# src
-#
-# Created by Illya Starikov on 10/12/18.  # Copyright 2018. Illya Starikov. MIT License.  #
+"""Population management for evolutionary algorithms.
 
-from copy import deepcopy
-from random import choice, sample
+This module provides the Population class for managing collections of
+individuals, including selection and offspring generation.
 
-from individual import Individual
+Example:
+    import individual
+    import population
+
+    individual.Individual.cnf_filename = "input.cnf"
+    pop = population.Population(mu=100, lambda_=50)
+    offspring = population.Population.generate_offspring(pop)
+"""
+
+from __future__ import annotations
+
+import copy
+import random
+import typing
+
+import individual
 
 
 class Population:
-    def __init__(self, μ, λ):
-        """Initialize a population of individuals.
+    """A collection of individuals in the evolutionary algorithm.
 
-        :μ (int): The population size.
-        :λ (int): The offspring size.
+    Manages population initialization, parent selection, offspring generation,
+    and survival selection using tournament selection.
+
+    Attributes:
+        mu: The population size (number of parents).
+        lambda_: The offspring size (number of children per generation).
+        individuals: List of Individual objects in the population.
+        fittest: The individual with the highest fitness.
+    """
+
+    def __init__(self, mu: int, lambda_: int) -> None:
+        """Initialize a population with random individuals.
+
+        Args:
+            mu: Population size (number of parents to maintain).
+            lambda_: Offspring size (number of children per generation).
         """
-        self.μ, self.λ = μ, λ
-
-        self.individuals = [Individual() for _ in range(self.μ + self.λ)]
+        self.mu = mu
+        self.lambda_ = lambda_
+        self.individuals: typing.List[individual.Individual] = [
+            individual.Individual() for _ in range(self.mu + self.lambda_)
+        ]
 
     @property
-    def fittest(self):
-        """Find the fittest individual in a population, according to the individual fitness function.
+    def fittest(self) -> individual.Individual:
+        """Get the fittest individual in the population.
 
-        :return (Individual): The fittest individual.
+        Returns:
+            The individual with the highest fitness value.
         """
-        return max(self.individuals, key=lambda individual: individual.fitness)
+        return max(self.individuals, key=lambda ind: ind.fitness)
 
     @staticmethod
-    def random_parents(population):
-        """Get two random parents from a population.
+    def random_parents(
+        pop: Population
+    ) -> typing.Tuple[individual.Individual, individual.Individual]:
+        """Select two random parents from the population.
 
-        :return (Individual, Individual): Two random parents.
+        Args:
+            pop: The population to select from.
 
+        Returns:
+            A tuple of two randomly selected individuals.
         """
-        split = choice(range(1, len(population.individuals) - 1))
-        return choice(population.individuals[:split]), choice(population.individuals[split:])
+        split = random.choice(range(1, len(pop.individuals) - 1))
+        return (
+            random.choice(pop.individuals[:split]),
+            random.choice(pop.individuals[split:])
+        )
 
     @staticmethod
-    def generate_offspring(population):
-        """Generate offspring from a Population by picking two random parents, recombining them,
-        mutating the child, and adding it to the offspring. The number of offspring is determine by
-        λ.
+    def generate_offspring(pop: Population) -> Population:
+        """Generate offspring through recombination and mutation.
 
-        :population (Population): The population to generate the offspring from.
-        :returns (Population): The offspring (of size λ).
+        Creates lambda_ new individuals by selecting parents, recombining
+        their genes, and applying mutation.
+
+        Args:
+            pop: The parent population.
+
+        Returns:
+            A new Population containing only the offspring.
         """
-        offspring = Population(population.μ, population.λ)
+        offspring = Population(pop.mu, pop.lambda_)
         offspring.individuals = []
 
-        for _ in range(population.λ):
-            parent_one, parent_two = Population.random_parents(population)
-
-            child = Individual.recombine(parent_one, parent_two)
-            child.mutate(child, 0.05)
-
-            offspring.individuals += [child]
+        for _ in range(pop.lambda_):
+            parent_one, parent_two = Population.random_parents(pop)
+            child = individual.Individual.recombine(parent_one, parent_two)
+            individual.Individual.mutate(child, 0.05)
+            offspring.individuals.append(child)
 
         return offspring
 
     @staticmethod
-    def survival_selection(population):
-        """Determine from the population what individuals should not be killed. This is done via
-        k-tournament selection: generate a tournament of k random individuals, pick the fittest
-        individuals, add it to the survivors, and remove it from the original population.
+    def survival_selection(pop: Population) -> Population:
+        """Select survivors using k-tournament selection.
 
-        Note:
-            The population should be of size μ + λ. The resultant population will be of size μ.
+        Reduces a population of size mu + lambda_ to size mu by repeatedly
+        running tournaments and selecting winners.
 
-        :population (Population): The population to run survival selection on. Must be of size μ + λ.
-        :returns (Population): The resultant population after killing off unfit individual. Will be
-        of size μ.
+        Args:
+            pop: The population to select from (size mu + lambda_).
+
+        Returns:
+            A new Population of size mu containing the survivors.
         """
-        new_population = Population(population.μ, population.λ)
+        new_population = Population(pop.mu, pop.lambda_)
         new_population.individuals = []
 
-        individuals = deepcopy(population.individuals)
+        candidates = copy.deepcopy(pop.individuals)
+        tournament_size = min(25, len(candidates))
 
-        for _ in range(population.μ):
-            tournament = sample(individuals, 25)
-            victor = max(tournament, key=lambda individual: individual.fitness)
-
-            new_population.individuals += [victor]
-            individuals.remove(victor)
+        for _ in range(pop.mu):
+            tournament = random.sample(candidates, tournament_size)
+            winner = max(tournament, key=lambda ind: ind.fitness)
+            new_population.individuals.append(winner)
+            candidates.remove(winner)
 
         return new_population
