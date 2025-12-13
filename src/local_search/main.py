@@ -13,7 +13,6 @@ import math
 
 import function
 import hill_climber
-import stochastic_hill_climber
 
 
 def main() -> None:
@@ -39,13 +38,14 @@ def main() -> None:
     print("=" * 80)
 
     complex_func = function.Function(
-        lambda x, y: -(x ** 2) - (y ** 2) + (x * y * math.cos(x) * math.sin(y)),
+        lambda x, y: (
+            -(x ** 2) - (y ** 2) + (x * y * math.cos(x) * math.sin(y))
+        ),
         (-100, 100),
         (-100, 100)
     )
 
-    shc = stochastic_hill_climber.StochasticHillClimber
-    stochastic_climber = shc(complex_func)
+    stochastic_climber = hill_climber.HillClimber(complex_func, stochastic=True)
     result = stochastic_climber.climb()
     print(f"Found optimum at: ({result.x}, {result.y})")
     print("-" * 80)
@@ -54,7 +54,7 @@ def main() -> None:
     print("\nStochastic Hill Climber with 10 Restarts")
     print("=" * 80)
 
-    stochastic_climber = shc(complex_func)
+    stochastic_climber = hill_climber.HillClimber(complex_func, stochastic=True)
     result = stochastic_climber.climb(restarts=10)
     print(f"Found optimum at: ({result.x}, {result.y})")
     print("-" * 80)
