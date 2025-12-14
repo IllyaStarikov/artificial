@@ -10,6 +10,9 @@
 
 namespace ChessEngine {
 
+// Initialize static worst_mode flag (for making AI pick worst moves).
+bool ChessAI::worst_mode_ = false;
+
 ChessAI::ChessAI(const std::string& fen_string)
     : current_state_(parser_(fen_string)),
       half_move_number_(2 * parser_.HalfMoves(fen_string)) {
@@ -734,17 +737,22 @@ float ChessAI::UtilityFunction(const State& state, Color friendly_color,
     }
   }
 
+  float result;
   if (outcome == kWin) {
-    return std::numeric_limits<float>::infinity();
+    result = std::numeric_limits<float>::infinity();
   } else if (outcome == kLoss) {
-    return -std::numeric_limits<float>::infinity();
+    result = -std::numeric_limits<float>::infinity();
   } else {
-    return 0;
+    result = 0;
   }
+  // In worst mode, invert the utility so AI prefers losing.
+  return worst_mode_ ? -result : result;
 }
 
 float ChessAI::UtilityHeuristic(const State& state, Color player_color) {
-  return ChessAIHeuristic<float>::MaterialAdvantage(state, player_color);
+  float score = ChessAIHeuristic<float>::MaterialAdvantage(state, player_color);
+  // In worst mode, negate the score to make AI pick the worst moves.
+  return worst_mode_ ? -score : score;
 }
 
 void ChessAI::UpdateTimer(double time_remaining_seconds) {

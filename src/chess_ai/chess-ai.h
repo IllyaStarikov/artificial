@@ -37,6 +37,11 @@ namespace ChessEngine {
 
 class ChessAI {
  public:
+  // Static flag for "worst moves" mode - inverts the evaluation function
+  // to make the AI pick the worst possible moves.
+  static bool worst_mode_;
+  static void SetWorstMode(bool enabled) { worst_mode_ = enabled; }
+
   // Public members are initialized first to avoid warnings about
   // initialization order. Parser must come before current_state_ since
   // current_state_ uses parser_ during initialization.
