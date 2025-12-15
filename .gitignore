@@ -1,0 +1,15 @@
+# Compiled binaries
+src/chess_ai/chess_ai
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.mypy_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
