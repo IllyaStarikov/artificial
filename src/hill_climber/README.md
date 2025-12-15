@@ -2,6 +2,10 @@
 
 A Python implementation of hill climbing optimization algorithms for finding optima in 2D function landscapes.
 
+<p align="center">
+  <img src="../../assets/hill_climbing.gif" alt="Hill Climber Demo">
+</p>
+
 ## Overview
 
 This module provides implementations of classic hill climbing algorithms:
@@ -11,6 +15,31 @@ This module provides implementations of classic hill climbing algorithms:
 - **Random Restart Hill Climbing**: Multiple runs from random starting points
 
 ## Quick Start
+
+```bash
+python visualize.py
+python visualize.py --stochastic
+python visualize.py --restarts 3
+python visualize.py --save climb.gif
+```
+
+## Visualization
+
+Animated contour plot showing optimization paths climbing toward peaks.
+
+```bash
+python visualize.py [OPTIONS]
+```
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--stochastic` | Use stochastic hill climbing | Off |
+| `--restarts N` | Number of random restarts | 0 |
+| `--function` | `peaks`, `quadratic`, `ripple` | `peaks` |
+| `--save FILE` | Save to file (.gif, .mp4) | None |
+| `--interval MS` | Animation speed (ms) | 100 |
+
+## Python API
 
 ```python
 import function
@@ -41,6 +70,7 @@ print(f"Best found: ({optimum.x}, {optimum.y})")
 | `hill_climber.py` | Hill climbing with steepest-ascent and stochastic modes |
 | `function.py` | Objective function wrapper with bounds |
 | `node.py` | 2D point representation |
+| `visualize.py` | Matplotlib visualization (contour plot with paths) |
 | `main.py` | Example usage demonstrations |
 
 ## Usage

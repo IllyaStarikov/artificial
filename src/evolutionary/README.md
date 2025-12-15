@@ -2,6 +2,10 @@
 
 A Python implementation of evolutionary algorithms for solving optimization problems, specifically designed for Boolean Satisfiability (SAT) problems.
 
+<p align="center">
+  <img src="../../assets/sat.gif" alt="Evolutionary Algorithm Demo">
+</p>
+
 ## Overview
 
 This module provides a complete framework for evolutionary computation including:
@@ -13,6 +17,38 @@ This module provides a complete framework for evolutionary computation including
 - **Flexible Termination Conditions**: Fitness targets, generation limits, time limits, and stagnation detection
 
 ## Quick Start
+
+```bash
+# Run with visualization
+python visualize.py input.cnf
+
+# Save animation as GIF
+python visualize.py input.cnf --save evolution.gif
+
+# Run without visualization
+make run
+```
+
+## Visualization
+
+Animated display showing the SAT problem being solved:
+- **Top row**: Variable assignments (green=True, red=False)
+- **Grid below**: Clause satisfaction (green=Pass, red=Fail)
+
+```bash
+python visualize.py input.cnf [OPTIONS]
+```
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--mu N` | Population size | 100 |
+| `--lambda N` | Offspring size | 50 |
+| `--target N` | Target fitness | 95.0 |
+| `--max-gens N` | Max generations | 200 |
+| `--save FILE` | Save to file (.gif, .mp4) | None |
+| `--interval MS` | Animation speed (ms) | 200 |
+
+## Python API
 
 ```python
 from ea import EA
@@ -41,6 +77,7 @@ print(f"Best fitness: {result.fitness}")
 | `population.py` | Population management and selection operators |
 | `sat.py` | SAT problem representation (CNF format) |
 | `termination.py` | Termination conditions and manager |
+| `visualize.py` | Matplotlib visualization (animated fitness chart) |
 
 ## Termination Conditions
 

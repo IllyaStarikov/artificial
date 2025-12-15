@@ -1,95 +1,45 @@
-# Artificial Intelligence Algorithms
+# Artificial Intelligence Projects
 
-A collection of AI optimization algorithms implemented in Python, featuring evolutionary algorithms and local search methods.
+A collection of AI and optimization algorithm implementations.
 
-## Modules
+---
+
+### [Chess AI](src/chess_ai/README.md)
+Chess engine with minimax alpha-beta pruning
+
+<p align="center">
+  <img src="assets/chess_ai.gif" alt="Chess AI Demo">
+</p>
+
+---
 
 ### [Evolutionary Algorithms](src/evolutionary/README.md)
+(μ + λ) EA for Boolean Satisfiability
 
-Implementation of evolutionary computation techniques for solving optimization problems:
+<p align="center">
+  <img src="assets/sat.gif" alt="Evolutionary Algorithm Demo">
+</p>
 
-- (μ + λ) Evolutionary Strategy
-- Tournament Selection
-- Multiple Crossover Operators (Uniform, N-Point, Davis)
-- Adaptive Epoch Management
-- SAT Problem Solver
+---
 
-### [Local Search Algorithms](src/local_search/README.md)
+### [Hill Climber](src/hill_climber/README.md)
+Local search optimization algorithms
 
-Classic local search optimization algorithms:
+<p align="center">
+  <img src="assets/hill_climbing.gif" alt="Hill Climber Demo">
+</p>
 
-- Steepest-Ascent Hill Climbing
-- Stochastic Hill Climbing
-- Random Restart Hill Climbing
+---
 
-## Quick Start
+### [Match-3 Solver](src/match3_solver/README.md)
+AI solver for match-3 puzzles
 
-```bash
-# Install development dependencies
-make install-dev
+<p align="center">
+  <img src="assets/match3.gif" alt="Match-3 Solver Demo">
+</p>
 
-# Run all checks (lint + type-check)
-make build
-
-# Run examples
-make run-evolutionary
-make run-local_search
-```
-
-## Project Structure
-
-```
-artificial/
-├── makefile                    # Top-level build commands
-├── requirements.txt            # Runtime dependencies
-├── requirements-dev.txt        # Development dependencies
-├── README.md                   # This file
-└── src/
-    ├── evolutionary/           # Evolutionary algorithms
-    │   ├── makefile
-    │   ├── README.md
-    │   ├── __init__.py
-    │   ├── ea.py               # Main EA implementation
-    │   ├── individual.py       # Individual representation
-    │   ├── population.py       # Population management
-    │   ├── sat.py              # SAT problem representation
-    │   ├── termination.py      # Termination conditions and manager
-    │   └── input.cnf           # Example SAT problem
-    └── local_search/           # Local search algorithms
-        ├── makefile
-        ├── README.md
-        ├── __init__.py
-        ├── hill_climber.py     # Steepest-ascent hill climbing
-        ├── stochastic_hill_climber.py  # Stochastic variant
-        ├── function.py         # Objective function wrapper
-        ├── node.py             # 2D point representation
-        └── main.py             # Example usage
-```
-
-## Requirements
-
-- Python 3.8+
-- No external runtime dependencies
-
-## Development
-
-```bash
-# Format code
-make format
-
-# Run linter
-make lint
-
-# Run type checker
-make type-check
-
-# Run tests
-make test
-
-# Clean build artifacts
-make clean
-```
+---
 
 ## License
 
-MIT License - See individual module files for details.
+Copyright 2018 Illya Starikov. All rights reserved.

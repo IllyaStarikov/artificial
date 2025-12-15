@@ -2,6 +2,10 @@
 
 An AI solver for match-3 puzzles (similar to Candy Crush or Bejeweled) using various search algorithms.
 
+<p align="center">
+  <img src="../../assets/match3.gif" alt="Match-3 Solver Demo">
+</p>
+
 ## Overview
 
 This module implements several search algorithms to find optimal solutions for match-3 puzzles:
@@ -39,8 +43,15 @@ solution = puzzle_solver.a_star(heuristic.HeuristicType.SCORE_PER_NODE)
 ## Command Line Usage
 
 ```bash
+# Solve a puzzle
 python main.py input/puzzle0.txt
 python main.py input/puzzle0.txt --solution_path output.txt
+
+# Visualize solution with animations
+python visualize.py input/puzzle0.txt
+python visualize.py input/puzzle0.txt --delay 0.5  # Slower animation
+python visualize.py input/puzzle0.txt --step       # Step through moves
+python visualize.py input/puzzle0.txt --no-emoji   # Use numbers instead
 ```
 
 ## Modules
@@ -56,7 +67,9 @@ python main.py input/puzzle0.txt --solution_path output.txt
 | `search_node.py` | Search tree node structure |
 | `utils.py` | File I/O and argument parsing |
 | `timer.py` | Simple stopwatch utility |
-| `main.py` | CLI entry point |
+| `visualizer.py` | Rich terminal animation |
+| `visualize.py` | Visualizer CLI entry point |
+| `main.py` | Solver CLI entry point |
 
 ## Input File Format
 
