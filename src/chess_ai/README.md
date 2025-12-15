@@ -138,4 +138,4 @@ python -m pytest test_game.py::TestCastling -v
 
 ## License
 
-Copyright 2018 Illya Starikov. All rights reserved.
+MIT License. See [LICENSE](../../LICENSE) for details.

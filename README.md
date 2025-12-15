@@ -42,4 +42,4 @@ AI solver for match-3 puzzles
 
 ## License
 
-Copyright 2018 Illya Starikov. All rights reserved.
+MIT License. See [LICENSE](LICENSE) for details.
