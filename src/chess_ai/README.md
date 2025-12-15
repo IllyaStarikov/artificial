@@ -135,7 +135,3 @@ python -m pytest test_game.py -v
 # Run specific test
 python -m pytest test_game.py::TestCastling -v
 ```
-
-## License
-
-MIT License. See [LICENSE](../../LICENSE) for details.
