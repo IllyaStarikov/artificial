@@ -52,13 +52,19 @@ class RepairingCrossover:
         p1_placements = {p.shape.shape_id: p for p in parent1.placements}
         p2_placements = {p.shape.shape_id: p for p in parent2.placements}
 
-        # 50/50 selection from parents
+        # 60% prefer left placement, 40% random - slight bias for convergence
         selected = []
         for shape_id in p1_placements:
-            if random.random() < 0.5:
-                selected.append(p1_placements[shape_id])
+            p1 = p1_placements[shape_id]
+            p2 = p2_placements[shape_id]
+            if random.random() < 0.6:
+                # Pick the one more to the left
+                if p1.position.col <= p2.position.col:
+                    selected.append(p1)
+                else:
+                    selected.append(p2)
             else:
-                selected.append(p2_placements[shape_id])
+                selected.append(random.choice([p1, p2]))
 
         # Repair with persistence - never discard shapes
         width, height = board_dims
@@ -239,8 +245,8 @@ class VisualShapePackerEA:
         if elite not in survivors:
             survivors[-1] = elite
 
-        # Random immigrants (10% of population) for diversity
-        num_immigrants = max(1, self.config.mu // 10)
+        # Random immigrants (5% of population) for diversity
+        num_immigrants = max(1, self.config.mu // 20)
         for i in range(num_immigrants):
             immigrant = Individual.random(self.shapes, self.board_dims, self.config)
             survivors[-(i + 2)] = immigrant  # Replace worst individuals (except elite)
