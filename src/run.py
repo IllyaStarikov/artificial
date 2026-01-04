@@ -146,6 +146,18 @@ Examples:
         default=5,
         help="Update visualization every N generations (with --visualize)",
     )
+    pack_parser.add_argument(
+        "--save",
+        type=Path,
+        default=None,
+        help="Save animation as GIF (e.g., --save=run.gif). Implies --visualize",
+    )
+    pack_parser.add_argument(
+        "--duration",
+        type=int,
+        default=15,
+        help="Duration in seconds for GIF recording (with --save)",
+    )
 
     # Hill Climber subcommand
     hill_parser = subparsers.add_parser(
@@ -273,20 +285,29 @@ def run_shape_pack(args: argparse.Namespace) -> int:
         seed=args.seed,
     )
 
-    # Use visualizer if requested
-    if args.visualize:
+    # Use visualizer if requested (--visualize or --save implies visualize)
+    if args.visualize or args.save:
         from shape_packer import ShapePackerVisualizer, VisualShapePackerEA
 
         print(f"\nStarting visualization...")
         print(f"  mu={config.mu}, lambda={config.lambda_}")
         print(f"  update_interval={args.interval}")
-        print("\nClose the window to stop (runs indefinitely).")
+
+        # When saving, use duration; otherwise run indefinitely
+        if args.save:
+            max_gens = 1000000  # High limit, duration controls stopping
+            print(f"  saving to: {args.save} ({args.duration}s)")
+        else:
+            max_gens = 1000000  # Effectively infinite
+            print("\nClose the window to stop (runs indefinitely).")
 
         ea = VisualShapePackerEA(shapes, board_dims, config)
         visualizer = ShapePackerVisualizer(
             ea,
             update_interval=args.interval,
-            max_generations=1000000,  # Effectively infinite - close window to stop
+            max_generations=max_gens,
+            save_path=args.save,
+            duration_seconds=args.duration if args.save else None,
         )
 
         start_time = time.time()

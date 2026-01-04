@@ -23,7 +23,7 @@ import matplotlib.patches as patches
 import matplotlib.colors as mcolors
 import matplotlib.gridspec as gridspec
 import numpy as np
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter
 
 from sat_solver import termination
 
@@ -289,6 +289,8 @@ class ShapePackerVisualizer:
         ea: VisualShapePackerEA,
         update_interval: int = 10,
         max_generations: int = 1000,
+        save_path: Optional[Path] = None,
+        duration_seconds: Optional[int] = None,
     ) -> None:
         """Create visualizer.
 
@@ -296,10 +298,15 @@ class ShapePackerVisualizer:
             ea: The EA to visualize.
             update_interval: Update display every N generations.
             max_generations: Maximum generations to run.
+            save_path: Path to save animation as GIF. If None, shows live.
+            duration_seconds: Max duration in seconds (for GIF saving).
         """
         self.ea = ea
         self.update_interval = update_interval
         self.max_generations = max_generations
+        self.save_path = save_path
+        self.duration_seconds = duration_seconds
+        self._start_time: Optional[float] = None
 
         # Set up dark theme
         plt.style.use("dark_background")
@@ -568,11 +575,21 @@ class ShapePackerVisualizer:
             color=COLORS["text"], fontsize=8, pad=3,
         )
 
+    def _should_stop(self) -> bool:
+        """Check if animation should stop."""
+        if self.ea.generation >= self.max_generations:
+            return True
+        if self.duration_seconds and self._start_time:
+            elapsed = time.time() - self._start_time
+            if elapsed >= self.duration_seconds:
+                return True
+        return False
+
     def _animate(self, frame: int) -> None:
         """Animation update function."""
         # Run multiple generations per frame for speed
         for _ in range(self.update_interval):
-            if self.ea.generation >= self.max_generations:
+            if self._should_stop():
                 return
             self.ea.step()
 
@@ -581,6 +598,13 @@ class ShapePackerVisualizer:
         self._update_diversity_plot()
         self._update_improvement_plot()
 
+    def _frame_generator(self):
+        """Generate frames until stopping condition is met."""
+        frame = 0
+        while not self._should_stop():
+            yield frame
+            frame += 1
+
     def run(self) -> Individual:
         """Run the visualization.
 
@@ -588,23 +612,42 @@ class ShapePackerVisualizer:
             Best individual found.
         """
         self.ea.initialize()
+        self._start_time = time.time()
         self._draw_board(self.ea.best)
         self._update_fitness_plot()
         self._update_diversity_plot()
         self._update_improvement_plot()
 
-        # Calculate frames needed
-        frames = self.max_generations // self.update_interval + 1
+        if self.save_path:
+            # Use generator for time-based stopping
+            print(f"Saving animation to {self.save_path}...")
+            if self.duration_seconds:
+                print(f"Recording for {self.duration_seconds} seconds...")
 
-        anim = FuncAnimation(
-            self.fig,
-            self._animate,
-            frames=frames,
-            interval=50,  # 50ms between frames
-            repeat=False,
-        )
+            anim = FuncAnimation(
+                self.fig,
+                self._animate,
+                frames=self._frame_generator,
+                interval=50,
+                repeat=False,
+                cache_frame_data=False,
+            )
 
-        plt.show()
+            writer = PillowWriter(fps=20)
+            anim.save(str(self.save_path), writer=writer, dpi=100)
+            final_gen = self.ea.generation
+            print(f"Saved {final_gen} generations to {self.save_path}")
+        else:
+            # Live mode - calculate frames needed
+            frames = self.max_generations // self.update_interval + 1
+            anim = FuncAnimation(
+                self.fig,
+                self._animate,
+                frames=frames,
+                interval=50,
+                repeat=False,
+            )
+            plt.show()
 
         return self.ea.best
 
@@ -659,6 +702,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Random seed",
     )
+    parser.add_argument(
+        "--save",
+        type=Path,
+        default=None,
+        help="Save animation as GIF to this path (e.g., --save=run.gif)",
+    )
 
     return parser.parse_args(argv)
 
@@ -695,6 +744,7 @@ def main(argv: list[str] | None = None) -> int:
         ea,
         update_interval=args.interval,
         max_generations=args.max_generations,
+        save_path=args.save,
     )
 
     start_time = time.time()
