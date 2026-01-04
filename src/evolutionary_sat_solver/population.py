@@ -18,7 +18,7 @@ import copy
 import random
 import typing
 
-import individual
+from evolutionary import individual
 
 
 class Population:

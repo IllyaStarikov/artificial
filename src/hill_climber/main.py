@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import math
 
-import function
-import hill_climber
+from hill_climber import function
+from hill_climber import hill_climber
 
 
 def main() -> None:

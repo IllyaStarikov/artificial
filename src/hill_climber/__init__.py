@@ -8,21 +8,24 @@ These algorithms are designed to find local optima in continuous function
 optimization problems over discrete 2D grids.
 
 Example:
-    import function
-    import hill_climber
+    from hill_climber import Function, Node, HillClimber
 
-    func = function.Function(
+    func = Function(
         lambda x, y: -(x**2 + y**2), (-100, 100), (-100, 100)
     )
 
     # Steepest-ascent
-    climber = hill_climber.HillClimber(func)
+    climber = HillClimber(func)
     optimum = climber.climb()
 
     # Stochastic with restarts
-    climber = hill_climber.HillClimber(func, stochastic=True)
+    climber = HillClimber(func, stochastic=True)
     optimum = climber.climb(restarts=10)
 """
+
+from hill_climber.function import Function
+from hill_climber.node import Node
+from hill_climber.hill_climber import HillClimber
 
 __all__ = [
     "Function",

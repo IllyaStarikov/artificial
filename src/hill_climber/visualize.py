@@ -21,8 +21,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
 
-import function
-import node
+from hill_climber import function
+from hill_climber import node
 
 
 def parse_arguments() -> argparse.Namespace:

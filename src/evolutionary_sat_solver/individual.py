@@ -16,7 +16,7 @@ from __future__ import annotations
 import random
 import typing
 
-import sat
+from evolutionary import sat
 
 
 class Individual:

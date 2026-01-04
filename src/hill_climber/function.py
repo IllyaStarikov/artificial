@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import typing
 
-import node
+from hill_climber import node
 
 
 class Function:

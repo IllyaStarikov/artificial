@@ -14,11 +14,11 @@ Example:
     result = algorithm.search([evolutionary.FitnessTarget(95.0)])
 """
 
-import ea
-import individual
-import population
-import sat
-import termination
+from evolutionary import ea
+from evolutionary import individual
+from evolutionary import population
+from evolutionary import sat
+from evolutionary import termination
 
 EA = ea.EA
 Individual = individual.Individual

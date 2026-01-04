@@ -25,8 +25,8 @@ from __future__ import annotations
 import random
 import typing
 
-import function
-import node
+from hill_climber import function
+from hill_climber import node
 
 
 class HillClimber:
