@@ -25,7 +25,7 @@ import matplotlib.gridspec as gridspec
 import numpy as np
 from matplotlib.animation import FuncAnimation, PillowWriter
 
-from evolutionary import termination
+from sat_solver import termination
 
 from shape_packer.board import Board, Placement
 from shape_packer.config import ShapePackerConfig

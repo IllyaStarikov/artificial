@@ -6,7 +6,7 @@ to maximize empty space on the left side.
 
 Example:
     from shape_packer import ShapePackerEA, ShapePackerConfig, parse_input_file
-    from evolutionary.termination import NumberOfFitnessEvaluations
+    from sat_solver.termination import NumberOfFitnessEvaluations
 
     shapes, board_dims = parse_input_file("shapes.txt")
     config = ShapePackerConfig(mu=100, lambda_=50)

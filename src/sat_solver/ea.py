@@ -17,9 +17,9 @@ from __future__ import annotations
 
 import typing
 
-from evolutionary import individual
-from evolutionary import population
-from evolutionary import termination
+from sat_solver import individual
+from sat_solver import population
+from sat_solver import termination
 
 
 class EA:

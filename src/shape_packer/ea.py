@@ -5,7 +5,7 @@ Uses the TerminationManager from the evolutionary module for clean
 termination handling.
 
 Example:
-    from evolutionary.termination import (
+    from sat_solver.termination import (
         TerminationManager,
         NumberOfFitnessEvaluations,
         NoChangeInBestFitness,
@@ -29,7 +29,7 @@ from __future__ import annotations
 import random
 from typing import List, Tuple
 
-from evolutionary import termination
+from sat_solver import termination
 
 TerminationCondition = termination.TerminationCondition
 TerminationManager = termination.TerminationManager

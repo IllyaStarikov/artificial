@@ -155,8 +155,14 @@ Examples:
     pack_parser.add_argument(
         "--duration",
         type=int,
-        default=15,
+        default=None,
         help="Duration in seconds for GIF recording (with --save)",
+    )
+    pack_parser.add_argument(
+        "--generations",
+        type=int,
+        default=None,
+        help="Number of generations for GIF recording (with --save). Overrides --duration",
     )
 
     # Hill Climber subcommand
@@ -206,8 +212,8 @@ def run_sat(args: argparse.Namespace) -> int:
     """
     import random
 
-    from evolutionary import EA, Individual, Population, SAT
-    from evolutionary.termination import (
+    from sat_solver import EA, Individual, Population, SAT
+    from sat_solver.termination import (
         FitnessTarget,
         NumberOfFitnessEvaluations,
     )
@@ -253,7 +259,7 @@ def run_shape_pack(args: argparse.Namespace) -> int:
     Returns:
         Exit code.
     """
-    from evolutionary.termination import (
+    from sat_solver.termination import (
         NoChangeInBestFitness,
         NumberOfFitnessEvaluations,
     )
@@ -293,12 +299,23 @@ def run_shape_pack(args: argparse.Namespace) -> int:
         print(f"  mu={config.mu}, lambda={config.lambda_}")
         print(f"  update_interval={args.interval}")
 
-        # When saving, use duration; otherwise run indefinitely
+        # Determine stopping condition
         if args.save:
-            max_gens = 1000000  # High limit, duration controls stopping
-            print(f"  saving to: {args.save} ({args.duration}s)")
+            if args.generations:
+                max_gens = args.generations
+                duration = None
+                print(f"  saving to: {args.save} ({args.generations} generations)")
+            elif args.duration:
+                max_gens = 1000000
+                duration = args.duration
+                print(f"  saving to: {args.save} ({args.duration}s)")
+            else:
+                max_gens = 100
+                duration = None
+                print(f"  saving to: {args.save} (100 generations default)")
         else:
             max_gens = 1000000  # Effectively infinite
+            duration = None
             print("\nClose the window to stop (runs indefinitely).")
 
         ea = VisualShapePackerEA(shapes, board_dims, config)
@@ -307,7 +324,7 @@ def run_shape_pack(args: argparse.Namespace) -> int:
             update_interval=args.interval,
             max_generations=max_gens,
             save_path=args.save,
-            duration_seconds=args.duration if args.save else None,
+            duration_seconds=duration,
         )
 
         start_time = time.time()

@@ -23,7 +23,11 @@
       "Bash(python3:*)",
       "Bash(for f in src/evolutionary/*.py src/local_search/*.py)",
       "Bash(do echo \"=== $f ===\" grep -n \"^import \\|^from \" \"$f\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(cd:*)",
+      "Bash(python run.py:*)",
+      "Bash(chmod:*)",
+      "Bash(git restore:*)"
     ]
   }
 }

@@ -13,7 +13,7 @@ import sys
 import time
 from pathlib import Path
 
-from evolutionary.termination import (
+from sat_solver.termination import (
     NoChangeInBestFitness,
     NumberOfFitnessEvaluations,
     TerminationCondition,

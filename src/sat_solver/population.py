@@ -18,7 +18,7 @@ import copy
 import random
 import typing
 
-from evolutionary import individual
+from sat_solver import individual
 
 
 class Population:
